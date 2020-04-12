@@ -71,48 +71,48 @@ class Net:
             # print(self.model.predict(state))
             actions = self.model.predict(state[np.newaxis])
             return np.argmax(actions)
+if __name__ == '__main__':
+
+    dqn_agent = Net([2], 3, 0.003, 32, 0.02, 0.001, 0.9995)
+
+    NUM_EPISODES = 100
+    MAX_STEPS = 1000
+
+    env = gym.make('MountainCar-v0')
+    print(env.observation_space.shape)
+    print(env.action_space.n)
+
+    print(dqn_agent.model.summary())
+    dqn_agent.model = tf.keras.models.load_model('trained-policies/dqn.h5')
+    rewards:List[float]=[]
+
+    for episode in range(NUM_EPISODES):
+        print(episode)
+        reward_total = 0
+        t=0
+        obs = env.reset()
+        # print(obs.shape)
+        done = False
+        while not done:
+            action = dqn_agent.policy(obs)
+            obs_, reward, done, info = env.step(action)
+            dqn_agent.replay_buffer.replay_buffer.append((obs, action, reward, obs_, done))
+            obs = obs_
+            t+=1
+            reward_total=reward_total+reward
+            if episode%10 == 0:
+                time.sleep(0.001)
+                env.render()
+
+            if episode > 2:
+                dqn_agent.train()
 
 
-dqn_agent = Net([2], 3, 0.003, 32, 0.02, 0.001, 0.9995)
-
-NUM_EPISODES = 100
-MAX_STEPS = 1000
-
-env = gym.make('MountainCar-v0')
-print(env.observation_space.shape)
-print(env.action_space.n)
-
-print(dqn_agent.model.summary())
-dqn_agent.model = tf.keras.models.load_model('trained-policies/dqn.h5')
-rewards:List[float]=[]
-
-for episode in range(NUM_EPISODES):
-    print(episode)
-    reward_total = 0
-    t=0
-    obs = env.reset()
-    # print(obs.shape)
-    done = False
-    while not done:
-        action = dqn_agent.policy(obs)
-        obs_, reward, done, info = env.step(action)
-        dqn_agent.replay_buffer.replay_buffer.append((obs, action, reward, obs_, done))
-        obs = obs_
-        t+=1
-        reward_total=reward_total+reward
-        if episode%10 == 0:
-            time.sleep(0.001)
-            env.render()
-
-        if episode > 2:
-            dqn_agent.train()
-
-
-        if done:
-            rewards.append(reward_total)
-            print(f'Episode{episode} finished after {t} timesteps with running average {np.mean(rewards[-10:])} reward with epsilon {dqn_agent.epsilon}')
+            if done:
+                rewards.append(reward_total)
+                print(f'Episode{episode} finished after {t} timesteps with running average {np.mean(rewards[-10:])} reward with epsilon {dqn_agent.epsilon}')
 
 
 
-env.close()
-tf.keras.models.save_model(dqn_agent.model, 'dqn.h5')
+    env.close()
+    tf.keras.models.save_model(dqn_agent.model, 'dqn.h5')

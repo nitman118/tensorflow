@@ -75,50 +75,52 @@ class Net:
             return np.argmax(actions)
 
 
-dqn_agent = Net([8], 4, 0.001, 64, 0.98, 0.001, 0.99)
 
-NUM_EPISODES = 1000
-MAX_STEPS = 1000
+if __name__ == '__main__':
+    dqn_agent = Net([8], 4, 0.001, 64, 0.98, 0.001, 0.99)
 
-env = gym.make('LunarLander-v2')
-print(env.observation_space.shape)
-print(env.action_space.n)
+    NUM_EPISODES = 1000
+    MAX_STEPS = 1000
 
-print(dqn_agent.model.summary())
-rewards:List[float]=[]
-best_running_avg = -np.inf
-for episode in range(NUM_EPISODES):
-    print(episode)
-    reward_total = 0
-    t=0
-    obs = env.reset()
-    # print(obs.shape)
-    done = False
+    env = gym.make('LunarLander-v2')
+    print(env.observation_space.shape)
+    print(env.action_space.n)
 
-    while not done:
-        action = dqn_agent.policy(obs)
-        obs_, reward, done, info = env.step(action)
-        dqn_agent.replay_buffer.replay_buffer.append((obs, action, reward, obs_, done))
-        obs = obs_
-        t+=1
-        reward_total=reward_total+reward
-        if episode%10 == 0:
-            time.sleep(0.001)
-            env.render()
+    print(dqn_agent.model.summary())
+    rewards:List[float]=[]
+    best_running_avg = -np.inf
+    for episode in range(NUM_EPISODES):
+        print(episode)
+        reward_total = 0
+        t=0
+        obs = env.reset()
+        # print(obs.shape)
+        done = False
 
-        if episode > 2:
-            dqn_agent.train()
+        while not done:
+            action = dqn_agent.policy(obs)
+            obs_, reward, done, info = env.step(action)
+            dqn_agent.replay_buffer.replay_buffer.append((obs, action, reward, obs_, done))
+            obs = obs_
+            t+=1
+            reward_total=reward_total+reward
+            if episode%10 == 0:
+                time.sleep(0.001)
+                env.render()
 
-        if done:
-            rewards.append(reward_total)
-            print(f'Episode{episode} finished after {t} timesteps with running average {np.mean(rewards[-10:])} reward with epsilon {dqn_agent.epsilon}')
-            if np.mean(rewards[-10:]) > best_running_avg:
-                best_running_avg = np.mean(rewards[-10:])
-                print(best_running_avg)
-                tf.keras.models.save_model(dqn_agent.model, f'dqn-lunar-lander.h5')
+            if episode > 2:
+                dqn_agent.train()
+
+            if done:
+                rewards.append(reward_total)
+                print(f'Episode{episode} finished after {t} timesteps with running average {np.mean(rewards[-10:])} reward with epsilon {dqn_agent.epsilon}')
+                if np.mean(rewards[-10:]) > best_running_avg:
+                    best_running_avg = np.mean(rewards[-10:])
+                    print(best_running_avg)
+                    tf.keras.models.save_model(dqn_agent.model, f'dqn-lunar-lander.h5')
 
 
 
 
-env.close()
-tf.keras.models.save_model(dqn_agent.model, 'dqn.h5')
+    env.close()
+    # tf.keras.models.save_model(dqn_agent.model, 'dqn.h5')
