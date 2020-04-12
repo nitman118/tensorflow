@@ -2,6 +2,7 @@ import tensorflow as tf #type:ignore
 from dqn_lunar_lander import Net
 import gym #type:ignore
 import time
+import this #type:ignore
 env = gym.make('MountainCar-v0')
 
 NUM_EPISODES = 20
