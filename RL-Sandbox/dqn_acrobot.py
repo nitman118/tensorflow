@@ -10,9 +10,11 @@ class ReplayBuffer:
 
     def __init__(self, buffer_size):
         self.replay_buffer = []
+        self.buffer_size = buffer_size
 
     def sample_experience(self, batch_size):
-        indices = np.random.randint(len(self.replay_buffer), size = batch_size)
+        max_mem = min(self.buffer_size, len(self.replay_buffer))
+        indices = np.random.randint(max_mem, size = batch_size)
         batch = [self.replay_buffer[index] for index in indices]
         states, actions, rewards, states_, dones = [np.array([experience[field_index] for experience in batch]) for field_index in range(5)]
         return (states, actions, rewards, states_, dones)
@@ -24,11 +26,11 @@ class Net:
     def __init__(self, input_shape, num_actions, learning_rate, batch_size, epsilon, eps_decay, discount_factor):
 
         self.input_ = tf.keras.layers.Input(shape = input_shape)
-        self.hidden1 = tf.keras.layers.Dense(128, activation="relu")(self.input_)
-        self.hidden2 = tf.keras.layers.Dense(128, activation="relu")(self.hidden1)
+        self.hidden1 = tf.keras.layers.Dense(256, activation="relu")(self.input_)
+        self.hidden2 = tf.keras.layers.Dense(256, activation="relu")(self.hidden1)
         self.output = tf.keras.layers.Dense(num_actions)(self.hidden2)
         self.learning_rate = learning_rate
-        self.replay_buffer = ReplayBuffer(10000)
+        self.replay_buffer = ReplayBuffer(1000000)
         self.batch_size = batch_size
         self.epsilon = epsilon
         self.eps_decay = eps_decay
@@ -72,13 +74,15 @@ class Net:
             actions = self.model.predict(state[np.newaxis])
             return np.argmax(actions)
 
-if __name__ == '__main__':
-    dqn_agent = Net([4], 2, 0.003, 32, 0.2, 0.001, 0.9995)
 
-    NUM_EPISODES = 100
+
+if __name__ == '__main__':
+    dqn_agent = Net([6], 3, 0.001, 64, 0.98, 0.001, 0.99)
+
+    NUM_EPISODES = 1000
     MAX_STEPS = 1000
 
-    env = gym.make('CartPole-v0')
+    env = gym.make('Acrobot-v1')
     print(env.observation_space.shape)
     print(env.action_space.n)
 
@@ -92,6 +96,7 @@ if __name__ == '__main__':
         obs = env.reset()
         # print(obs.shape)
         done = False
+
         while not done:
             action = dqn_agent.policy(obs)
             obs_, reward, done, info = env.step(action)
@@ -112,10 +117,10 @@ if __name__ == '__main__':
                 if np.mean(rewards[-10:]) > best_running_avg:
                     best_running_avg = np.mean(rewards[-10:])
                     print(best_running_avg)
-                    tf.keras.models.save_model(dqn_agent.model, f'dqn-cartpole.h5')
+                    tf.keras.models.save_model(dqn_agent.model, f'dqn-lunar-lander.h5')
 
 
 
 
     env.close()
-    # tf
+    # tf.keras.models.save_model(dqn_agent.model, 'dqn.h5')

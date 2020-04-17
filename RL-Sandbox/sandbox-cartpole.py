@@ -10,7 +10,7 @@ NUM_EPISODES = 20
 # dqn_agent = Net([2], 3, 0.003, 32,0, 0.001, 0.9995)
 dqn_agent = Net([4], 2, 0.003, 32, 0.0, 0.001, 0.9995)
 
-dqn_agent.model = tf.keras.models.load_model('trained-policies/dqn-cartpole-v0.h5')
+dqn_agent.model = tf.keras.models.load_model('trained-policies/dqn-cartpole.h5')
 
 for episode in range(NUM_EPISODES):
     print(episode)
